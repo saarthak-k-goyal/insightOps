@@ -89,7 +89,16 @@ def process_file(path):
     print(">>> PROCESSING:", meta)
 
     # add metadata to store
-    add_metadata(meta)
+    added = add_metadata(meta)
+
+    if not added:
+        print(f"🔁 File already indexed, skipping: {meta['filename']}")
+        return {
+            "status": "skipped",
+            "filename": meta["filename"],
+            "hash": meta["hash"],
+        }
+
 
     lower = path.lower()
     if lower.endswith(".txt"):
@@ -114,11 +123,14 @@ def process_file(path):
 
     if not text or not text.strip():
         print("⚠ No extractable text in this file, skipping chunking")
-        return
+        return {
+            "status": "skipped",
+            "filename": meta["filename"],
+            "hash": meta["hash"],
+        }
 
     cleaned = clean_text(text)
     chunks = chunk_text(cleaned)
-    print("CHUNKS CREATED:", len(chunks))
 
     save_chunks(meta["filename"], meta["hash"], chunks)
 
@@ -129,6 +141,13 @@ def process_file(path):
         print(f"Moved to processed: {dest}")
     except Exception as e:
         print("Error moving file:", e)
+    
+    return {
+        "status": "indexed",
+        "filename": meta["filename"],
+        "hash": meta["hash"],
+        "chunks": len(chunks),
+    }
 
 class IngestHandler(FileSystemEventHandler):
     def on_created(self, event):

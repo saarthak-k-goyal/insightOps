@@ -4,16 +4,13 @@ from sentence_transformers import SentenceTransformer
 import json
 import re
 from pathlib import Path
+from config import DATA_PATH, VECTOR_PATH
 
 # --------------------------
 # Setup
 # --------------------------
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_PATH = BASE_DIR / "data" / "chunks.json"
-VECTOR_PATH = BASE_DIR / "vector_db"
-
-# small + fast embedding model (good quality)
+# embedding model
 EMBEDDER = SentenceTransformer("all-MiniLM-L6-v2")
 
 client = chromadb.Client(

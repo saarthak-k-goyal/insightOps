@@ -2,6 +2,7 @@ import re
 import json
 from pathlib import Path
 from threading import Lock
+from config import DATA_PATH
 
 file_lock = Lock()
 
@@ -31,9 +32,6 @@ def chunk_text(text, chunk_size=300):
         chunks.append(chunk)
 
     return chunks
-
-
-DATA_PATH = Path("data/chunks.json")
 
 def save_chunks(file_name, file_hash, chunks):
     DATA_PATH.parent.mkdir(exist_ok=True)

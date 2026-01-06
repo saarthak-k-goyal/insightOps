@@ -6,8 +6,8 @@ from vector_store.store import query_db, list_indexed_files, get_index_stats
 from pathlib import Path
 from ingestion.ingest import process_file
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-UPLOAD_DIR = BASE_DIR / "ingest_queue"
+from config import UPLOAD_DIR
+
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 
@@ -57,15 +57,25 @@ async def upload(file: UploadFile = File(...)):
 
     # run the same processing pipeline as the watcher
     try:
-        process_file(str(dest_path))
+        result = process_file(str(dest_path))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to index file: {e}")
+
+    if result.get("status") == "skipped":
+        return {
+            "status": "ok",
+            "file": result["filename"],
+            "hash": result["hash"],
+            "message": "File already indexed.",
+        }
 
     return {
         "status": "ok",
         "file": file.filename,
+        "chunks": result.get("chunks") if result else None,
         "message": "File uploaded and indexed successfully.",
     }
+
 
 
 @app.get("/health")
